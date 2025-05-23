@@ -2,6 +2,15 @@
 //         so do not move it next to the other scripts
 
 const CACHE_NAME = 'lab-8-starter';
+const STATIC_ASSETS = [
+  '/',
+  '/index.html',
+  '/assets/scripts/main.js',
+  '/assets/scripts/RecipeCard.js',
+  '/assets/styles/main.css',
+  '/assets/images/icons/4-star.svg',
+  '/assets/images/icons/5-star.svg',
+];
 
 // Installs the service worker. Feed it some initial URLs to cache
 self.addEventListener('install', function (event) {
@@ -9,14 +18,25 @@ self.addEventListener('install', function (event) {
     caches.open(CACHE_NAME).then(function (cache) {
       // B6. TODO - Add all of the URLs from RECIPE_URLs here so that they are
       //            added to the cache when the ServiceWorker is installed
-      return cache.addAll([]);
+      return cache.addAll([...RECIPE_URLs, ...STATIC_ASSETS]);
     })
   );
 });
 
 // Activates the service worker
 self.addEventListener('activate', function (event) {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    caches.keys().then(function (cacheNames) {
+      return Promise.all(
+        cacheNames.map(function (name) {
+          if (name !== CACHE_NAME) {
+            console.log('🗑️ Deleting old cache:', name);
+            return caches.delete(name);
+          }
+        })
+      );
+    }).then(() => self.clients.claim())
+  );
 });
 
 // Intercept fetch requests and cache them
@@ -37,4 +57,28 @@ self.addEventListener('fetch', function (event) {
   // B8. TODO - If the request is in the cache, return with the cached version.
   //            Otherwise fetch the resource, add it to the cache, and return
   //            network response.
+    event.respondWith(
+    caches.open(CACHE_NAME).then(function (cache) {
+      return cache.match(event.request).then(function (cachedResponse) {
+        if (cachedResponse) {
+          return cachedResponse; // B8
+        }
+        return fetch(event.request).then(function (networkResponse) {
+          const requestURL = event.request.url;
+          const isImage = event.request.destination === 'image';
+          if (
+            event.request.method === 'GET' &&
+            networkResponse.status === 200 &&
+            (isImage || requestURL.includes('/recipes/') || requestURL.includes('.js') || requestURL.includes('.css') || requestURL.includes('index.html'))
+          ) {
+            cache.put(event.request, networkResponse.clone());
+          }
+
+          return networkResponse;
+        }).catch((err) => {
+          return new Response('Offline', { status: 503, statusText: 'Offline fallback' });
+        });
+      });
+    })
+  );
 });
