@@ -11,13 +11,13 @@ const RECIPE_URLs = [
   'https://adarsh249.github.io/Lab8-Starter/recipes/6_one-pot-thanksgiving-dinner.json'
 ];
 const STATIC_ASSETS = [
-  '/',
-  '/index.html',
-  '/assets/scripts/main.js',
-  '/assets/scripts/RecipeCard.js',
-  '/assets/styles/main.css',
-  '/assets/images/icons/4-star.svg',
-  '/assets/images/icons/5-star.svg',
+  './',
+  './index.html',
+  './assets/scripts/main.js',
+  './assets/scripts/RecipeCard.js',
+  './assets/styles/main.css',
+  './assets/images/icons/4-star.svg',
+  './assets/images/icons/5-star.svg',
 ];
 
 // Installs the service worker. Feed it some initial URLs to cache
